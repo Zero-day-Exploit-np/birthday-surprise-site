@@ -46,6 +46,7 @@ input[type=file]{display:none}
 .memory img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s;display:none}.memory.has-photo img{display:block}.memory.has-photo .memory-placeholder{display:none}.memory:hover img{transform:scale(1.07)}
 .memory:after{content:"";position:absolute;inset:30% 0 0;background:linear-gradient(transparent,#0c0814d9);z-index:1;pointer-events:none}
 .memory-placeholder{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:9px;color:#eec5d5;padding:10px}.memory-placeholder b{font-size:30px;font-weight:400}.memory-placeholder span{font:italic 16px Georgia,serif}.memory-caption{position:absolute;z-index:2;bottom:13px;left:15px;right:12px;font:italic 16px Georgia,serif;text-shadow:0 2px 8px #000}
+.memory-date{position:absolute;z-index:2;bottom:39px;left:15px;right:12px;color:#f7dbe4;font-size:10px;letter-spacing:1px;text-transform:uppercase;text-shadow:0 2px 8px #000}.memory.is-unavailable{cursor:default}.memory.is-unavailable img{display:none}.memory.is-unavailable:after{display:none}.gallery-empty{grid-column:1/-1;min-height:150px;display:grid;place-items:center;text-align:center;border:1px dashed var(--line);border-radius:16px;color:var(--muted);padding:24px;line-height:1.7}
 .memory-hint{text-align:center;color:#927f97;font-size:11px;margin-top:17px}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1080px;margin:auto}
 .panel{background:linear-gradient(145deg,#ffffff09,#ffffff03);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,3vw,32px);position:relative;overflow:hidden}
@@ -141,14 +142,8 @@ footer{text-align:center;padding:55px 20px 35px;border-top:1px solid #ffffff0d;b
     <label class="pill upload-label">＋ Add our photos <input id="photoUpload" type="file" accept="image/*" multiple></label>
     <button class="pill" id="captionHelp">How to personalize</button>
   </div>
-  <div class="gallery" id="gallery">
-    <div class="memory" tabindex="0" role="button" data-caption="The moment I wish I could replay"><img alt="Memory one" loading="lazy"><div class="memory-placeholder"><b>♡</b><span>That one perfect moment</span></div><div class="memory-caption">The moment I wish I could replay</div></div>
-    <div class="memory" tabindex="0" role="button" data-caption="A smile I never get tired of"><img alt="Memory two" loading="lazy"><div class="memory-placeholder"><b>✦</b><span>Your beautiful smile</span></div><div class="memory-caption">A smile I never get tired of</div></div>
-    <div class="memory" tabindex="0" role="button" data-caption="Anywhere is lovely with you"><img alt="Memory three" loading="lazy"><div class="memory-placeholder"><b>☾</b><span>Our little adventures</span></div><div class="memory-caption">Anywhere is lovely with you</div></div>
-    <div class="memory" tabindex="0" role="button" data-caption="The little things are the big things"><img alt="Memory four" loading="lazy"><div class="memory-placeholder"><b>❀</b><span>Little things, big feelings</span></div><div class="memory-caption">The little things are the big things</div></div>
-    <div class="memory" tabindex="0" role="button" data-caption="One of a million reasons I love you"><img alt="Memory five" loading="lazy"><div class="memory-placeholder"><b>♡</b><span>My favorite person</span></div><div class="memory-caption">One of a million reasons I love you</div></div>
-  </div>
-  <div class="memory-hint">Your photos stay in this browser session; select your images again if you reopen the original file.</div>
+  <div class="gallery" id="gallery"></div>
+  <div class="memory-hint">Add photo URLs in content/birthday.json. Local uploads are temporary and stay in this browser session.</div>
 </section>
 
 <section id="cake">
@@ -235,19 +230,18 @@ heroInput.addEventListener('change',()=>{const f=heroInput.files[0];if(!f)return
 photoInput.addEventListener('change',()=>{
  const files=Array.from(photoInput.files||[]).filter(f=>f.type.startsWith('image/'));
  if(!files.length)return;
- const cards=Array.from(document.querySelectorAll('.memory'));
- files.slice(0,cards.length).forEach((file,i)=>{const card=cards[i],img=card.querySelector('img'),url=URL.createObjectURL(file);img.src=url;card.classList.add('has-photo');img.alt=file.name;});
- if(files.length>cards.length)toast('Added the first '+cards.length+' photos. Add more gallery cards in the HTML for extra photos.');
- else toast('Your memories are in the gallery. Tap a photo to see it bigger. ♥');
+ const gallery=$('#gallery');gallery.querySelector('.gallery-empty')?.remove();
+ files.forEach(file=>gallery.appendChild(createMemoryCard({url:URL.createObjectURL(file),caption:file.name.replace(/\.[^.]+$/,''),alt:file.name})));
+ toast('Your memories are in the gallery. Tap a photo to see it bigger. ♥');
 });
 let currentPhotoIndex=0;
 const photoCards=()=>Array.from(document.querySelectorAll('.memory.has-photo'));
 function showPhoto(index){const cards=photoCards();if(!cards.length)return;currentPhotoIndex=(index+cards.length)%cards.length;const img=cards[currentPhotoIndex].querySelector('img');$('#lightboxImg').src=img.src;$('#lightboxImg').alt=img.alt||'Expanded memory';$('#lightbox').classList.add('open');$('#closeLightbox').focus();}
 function openMemory(card){
- const img=card.querySelector('img');if(!card.classList.contains('has-photo')){photoInput.click();return;}
+ const img=card.querySelector('img');if(card.classList.contains('is-unavailable'))return;if(!card.classList.contains('has-photo')){photoInput.click();return;}
  showPhoto(photoCards().indexOf(card));
 }
-document.querySelectorAll('.memory').forEach(card=>{card.addEventListener('click',()=>openMemory(card));card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openMemory(card)}})});
+function bindMemoryCards(){document.querySelectorAll('.memory').forEach(card=>{card.addEventListener('click',()=>openMemory(card));card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openMemory(card)}})});}
 let touchStartX=0;$('#lightbox').addEventListener('touchstart',event=>{touchStartX=event.changedTouches[0].clientX},{passive:true});$('#lightbox').addEventListener('touchend',event=>{const delta=event.changedTouches[0].clientX-touchStartX;if(Math.abs(delta)>45)showPhoto(currentPhotoIndex+(delta<0?1:-1))},{passive:true});
 function closeLightbox(){$('#lightbox').classList.remove('open');$('#lightboxImg').src=''}
 $('#closeLightbox').addEventListener('click',closeLightbox);$('#previousPhoto').addEventListener('click',()=>showPhoto(currentPhotoIndex-1));$('#nextPhoto').addEventListener('click',()=>showPhoto(currentPhotoIndex+1));$('#lightbox').addEventListener('click',e=>{if(e.target===$('#lightbox'))closeLightbox()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();if($('#lightbox').classList.contains('open')&&e.key==='ArrowLeft')showPhoto(currentPhotoIndex-1);if($('#lightbox').classList.contains('open')&&e.key==='ArrowRight')showPhoto(currentPhotoIndex+1)});
@@ -257,21 +251,22 @@ $('#relightBtn').addEventListener('click',()=>{ $('#cakeArt').classList.remove('
 let cakeCut=false;
 $('#cutCakeBtn').addEventListener('click',()=>{const stage=$('#cakeStage');if(cakeCut){stage.classList.remove('cutting','cut-done');$('#cakeArt').style.display='';cakeCut=false;$('#cutCakeBtn').textContent='🔪 Cut the cake';return;}cakeCut=true;stage.classList.remove('cut-done');stage.classList.add('cutting');$('#cakeArt').style.display='';$('#cutCakeBtn').textContent='↻ Reset cake';confettiHearts(18);toast('A little slice of birthday magic! 🎂');setTimeout(()=>{stage.classList.remove('cutting');stage.classList.add('cut-done');},1600);});
 // Audio player: a user-selected file avoids autoplay/copyright assumptions.
-const audio=$('#audio'),audioInput=$('#audioUpload'),playBtn=$('#playBtn');let musicChoice=sessionStorage.getItem('birthdayMusicChoice')||'pending';
+const audio=$('#audio'),audioInput=$('#audioUpload'),playBtn=$('#playBtn');let musicChoice=sessionStorage.getItem('birthdayMusicChoice')||'pending';audio.loop=false;
 audioInput.addEventListener('change',()=>{const file=audioInput.files[0];if(!file)return;audio.src=URL.createObjectURL(file);$('#trackName').textContent=file.name.replace(/\.[^.]+$/,'');$('#trackSub').textContent='Your chosen song';audio.load();toast('Song ready — press play when you are ready. ♫')});
-async function togglePlay(){if(!audio.src){audioInput.click();toast('Choose an audio file first.');return;}if(audio.paused){try{await audio.play();}catch(e){toast('Could not play this file. Try another audio file.')}}else audio.pause();}
+async function togglePlay(){if(!audio.src){audioInput.click();toast('Choose an audio file first.');return;}if(audio.paused){audio.muted=false;try{await audio.play();}catch(e){toast('Could not play this file. Try another audio file.')}}else audio.pause();}
 playBtn.addEventListener('click',togglePlay);$('#startMusicTop').addEventListener('click',()=>{if(!audio.src){audioInput.click();toast('Choose your special song first.');return;}togglePlay();});
 audio.addEventListener('play',()=>{playBtn.textContent='Ⅱ';$('#startMusicTop').textContent='Ⅱ  Music is playing';$('#visualizer').classList.remove('is-paused')});
 audio.addEventListener('pause',()=>{playBtn.textContent='▶';$('#startMusicTop').textContent='♫  Play our song';$('#visualizer').classList.add('is-paused')});
 audio.addEventListener('timeupdate',()=>{if(audio.duration)$('#progressBar').style.width=(audio.currentTime/audio.duration*100)+'%'});
 audio.addEventListener('ended',()=>{$('#progressBar').style.width='0%';playBtn.textContent='▶'});
-$('#restartMusic').addEventListener('click',()=>{if(!audio.src){toast('Choose your song first.');return;}audio.currentTime=0;audio.play().catch(()=>{});});
+audio.addEventListener('error',()=>{$('#autoplayNote').textContent='This song could not be loaded. Choose another audio file or check music.src in content/birthday.json.';toast('Music is unavailable, but the birthday surprise is still ready.');});
+$('#restartMusic').addEventListener('click',()=>{if(!audio.src){toast('Choose your song first.');return;}audio.muted=false;audio.currentTime=0;audio.play().catch(()=>toast('Could not play this file. Try another audio file.'));});
 $('#muteBtn').addEventListener('click',()=>{audio.muted=!audio.muted;$('#muteBtn').textContent=audio.muted?'×':'♪';});
 $('#volume').addEventListener('input',e=>{audio.volume=Number(e.target.value);audio.muted=false;$('#muteBtn').textContent='♪'});audio.volume=.75;
 // Try autoplay on page load. Browsers often block audible autoplay until a user gesture.
 function tryAutoplay(){if(musicChoice!=='music'){return Promise.resolve(false)}if(!audio.src){$('#autoplayNote').textContent='Add a song below, then tap Start birthday music.';return Promise.resolve(false)}return audio.play().then(()=>{$('#autoplayNote').textContent='Birthday music is playing. ♫';return true}).catch(()=>{$('#autoplayNote').textContent='Music could not start automatically. Tap Start birthday music.';return false});}
-$('#enableSoundBtn').addEventListener('click',()=>{if(!audio.src){audioInput.click();toast('Choose a song, then tap play.');return;}audio.play().then(()=>{$('#autoplayNote').textContent='Birthday music is playing. ♫';}).catch(()=>toast('Please choose a supported audio file.'));});
-window.addEventListener('load',()=>{if(window.BIRTHDAY_CONTENT && window.BIRTHDAY_CONTENT.audioSrc){audio.src=window.BIRTHDAY_CONTENT.audioSrc;audio.load();}});
+$('#enableSoundBtn').addEventListener('click',()=>{if(!audio.src){audioInput.click();toast('Choose a song, then tap play.');return;}audio.muted=false;audio.play().then(()=>{$('#autoplayNote').textContent='Birthday music is playing. ♫';}).catch(()=>toast('Please choose a supported audio file.'));});
+window.addEventListener('load',()=>{const configuredMusic=window.BIRTHDAY_CONTENT?.music?.src||window.BIRTHDAY_CONTENT?.audioSrc;if(configuredMusic&&audio.getAttribute('src')!==configuredMusic){audio.src=configuredMusic;audio.load();}});
 const opening=$('#opening');function dismissOpening(){opening.classList.add('is-hidden');$('#enterWithMusic').blur();$('#enterWithoutMusic').blur();}
 $('#enterWithMusic').addEventListener('click',async()=>{musicChoice='music';sessionStorage.setItem('birthdayMusicChoice',musicChoice);dismissOpening();const started=await tryAutoplay();if(!started)toast('You are in — use Start birthday music whenever you are ready.');});
 $('#enterWithoutMusic').addEventListener('click',()=>{musicChoice='silent';sessionStorage.setItem('birthdayMusicChoice',musicChoice);audio.pause();audio.muted=true;dismissOpening();$('#autoplayNote').textContent='Music is off. You can enable it whenever you are ready.';});
@@ -285,6 +280,24 @@ $('#giftBtn').addEventListener('click',()=>{const reveal=$('#secretReveal');reve
 $('#heartsBtn').addEventListener('click',()=>confettiHearts(45));
 function confettiHearts(count){for(let i=0;i<count;i++){const h=document.createElement('span');h.className='heart-particle';h.textContent=['♥','♡','✦','❤'][Math.floor(Math.random()*4)];h.style.left=Math.random()*100+'vw';h.style.fontSize=(12+Math.random()*22)+'px';h.style.animationDuration=(3+Math.random()*4)+'s';h.style.opacity=.55+Math.random()*.45;document.body.appendChild(h);setTimeout(()=>h.remove(),7500)}}
 // Text lives in content.js, so edit that file instead of this HTML.
+function createMemoryCard(photo){
+ const card=document.createElement('div');card.className='memory';card.tabIndex=0;card.setAttribute('role','button');card.dataset.caption=typeof photo.caption==='string'?photo.caption:'';
+ const img=document.createElement('img');img.loading='lazy';img.alt=typeof photo.alt==='string'&&photo.alt?photo.alt:(typeof photo.caption==='string'&&photo.caption?photo.caption:'Birthday memory');img.src=typeof photo.url==='string'?photo.url:'';
+ const placeholder=document.createElement('div');placeholder.className='memory-placeholder';const icon=document.createElement('b');icon.textContent='♡';const message=document.createElement('span');message.textContent='This memory is unavailable';placeholder.append(icon,message);
+ const caption=document.createElement('div');caption.className='memory-caption';caption.textContent=typeof photo.caption==='string'?photo.caption:'';
+ card.append(img,placeholder,caption);
+ if(typeof photo.date==='string'&&photo.date){const date=document.createElement('div');date.className='memory-date';date.textContent=photo.date;card.appendChild(date);}
+ img.addEventListener('error',()=>{card.classList.remove('has-photo');card.classList.add('is-unavailable');img.removeAttribute('src');});
+ img.addEventListener('load',()=>card.classList.add('has-photo'));
+ if(typeof photo.url!=='string'||!photo.url.trim()){card.classList.add('is-unavailable');}
+ return card;
+}
+function renderConfiguredPhotos(photos){
+ const gallery=$('#gallery');gallery.textContent='';
+ if(!Array.isArray(photos)||photos.length===0){const empty=document.createElement('p');empty.className='gallery-empty';empty.textContent='Your favorite memories will appear here when you add photo URLs to content/birthday.json.';gallery.appendChild(empty);return;}
+ photos.forEach(photo=>gallery.appendChild(createMemoryCard(photo)));
+ bindMemoryCards();
+}
 function applyBirthdayContent(){const c=window.BIRTHDAY_CONTENT;if(!c)return;
  if(c.intro){if(c.intro.title)$('#openingTitle').textContent=c.intro.title;if(c.intro.message)$('#openingMessage').textContent=c.intro.message;if(c.intro.musicButton)$('#enterWithMusic').textContent=c.intro.musicButton;if(c.intro.silentButton)$('#enterWithoutMusic').textContent=c.intro.silentButton;}
  if(c.recipientName){$('#heroName').textContent=c.recipientName;}
@@ -297,10 +310,11 @@ function applyBirthdayContent(){const c=window.BIRTHDAY_CONTENT;if(!c)return;
  if(c.pageTitle)document.title=c.pageTitle;
  if(Array.isArray(c.memories)){document.querySelectorAll('.memory').forEach((card,i)=>{const m=c.memories[i];if(!m)return;if(m.caption){card.dataset.caption=m.caption;card.querySelector('.memory-caption').textContent=m.caption;card.querySelector('.memory-placeholder span').textContent=m.caption;}if(m.image){const img=card.querySelector('img');img.src=m.image;card.classList.add('has-photo');}})}
  if(Array.isArray(c.chapters)){document.querySelectorAll('.story-item').forEach((item,i)=>{const d=c.chapters[i];if(!d)return;item.querySelector('small').textContent=d.label||'';item.querySelector('h3').textContent=d.title||'';item.querySelector('p').textContent=d.text||'';})}
- if(c.music&&c.music.src&&audio.src!==new URL(c.music.src,window.location.href).href){audio.src=c.music.src;audio.load();}
+ if(Array.isArray(c.photos))renderConfiguredPhotos(c.photos);
+ if(c.music){if(typeof c.music.loop==='boolean')audio.loop=c.music.loop;if(typeof c.music.src==='string'&&c.music.src.trim()&&audio.getAttribute('src')!==c.music.src){audio.src=c.music.src;audio.load();}}
 }
 applyBirthdayContent();
-fetch('content/birthday.json').then(response=>{if(!response.ok)throw new Error('Content file could not be loaded');return response.json()}).then(content=>{window.BIRTHDAY_CONTENT=content;applyBirthdayContent();if(content.audioSrc&&audio.src!==new URL(content.audioSrc,window.location.href).href){audio.src=content.audioSrc;audio.load();tryAutoplay();}}).catch(()=>{if(window.location.protocol!=='file:')toast('Using the built-in birthday content because the editable content file could not be loaded.');});
+fetch('content/birthday.json').then(response=>{if(!response.ok)throw new Error('Content file could not be loaded');return response.json()}).then(content=>{window.BIRTHDAY_CONTENT=content;applyBirthdayContent();const configuredMusic=content.music?.src||content.audioSrc;if(typeof configuredMusic==='string'&&configuredMusic.trim()&&audio.getAttribute('src')!==configuredMusic){audio.src=configuredMusic;audio.load();tryAutoplay();}}).catch(()=>{if(window.location.protocol!=='file:')toast('Using the built-in birthday content because the editable content file could not be loaded.');});
 setInterval(()=>{if(document.visibilityState==='visible'&&Math.random()>.5){const h=document.createElement('span');h.className='heart-particle';h.textContent=Math.random()>.5?'♡':'♥';h.style.left=Math.random()*100+'vw';h.style.fontSize=(12+Math.random()*10)+'px';h.style.animationDuration=(7+Math.random()*4)+'s';h.style.opacity='.35';document.body.appendChild(h);setTimeout(()=>h.remove(),12000)}},1800);
 </script>
 </body>

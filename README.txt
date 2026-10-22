@@ -10,11 +10,12 @@ EDIT TEXT
 Open content.js in a text editor and change the text between quotes/backticks. Keep commas between fields. For a quote inside a quoted string, use \". The letterText uses backticks and can contain apostrophes and new lines.
 
 ADD PHOTOS
-Option A: open the website and use “Add our photos” and the hero photo area. These previews are temporary for that browser session.
-Option B: put images in assets/ and set each memories item image to a path such as "assets/photo1.jpg" in content.js. To set the main hero photo permanently, change the hero image in index.html or ask for a follow-up customization.
+Edit the photos array in content/birthday.json. Each entry uses:
+  {"url":"https://your-host.example/photos/photo1.jpg","caption":"My favorite memory","date":"","alt":"A special memory together"}
+Upload the image to an image host, storage bucket, CDN, or your own website and paste the direct public URL that returns the image file itself. Do not use a share-page URL that returns HTML or requires login. Add another JSON object for each new photo. JPG, JPEG, PNG, WebP, GIF, and other browser-supported formats work. Empty dates are not displayed. Invalid URLs become friendly placeholders and an empty array shows an empty-gallery message. The temporary “Add our photos” control is also retained for local previews.
 
 ADD MUSIC
-Set audioSrc in content/birthday.json to the relative path of your audio file. The included configuration points to the provided "HAPPY BIRTHDAY INSTRUMENTAL.mp3" file. You can instead create an assets folder beside index.html and use a path such as "assets/our-song.mp3".
+Set music.src in content/birthday.json to the relative path or direct URL of your audio file. Set music.loop to true for continuous looping. The included configuration points to the provided "HAPPY BIRTHDAY INSTRUMENTAL.mp3" file.
 
 MUSIC CONSENT
 The opening screen is a custom audio-choice screen, not a browser permission request. No audio is attempted before a choice is made. “Enter with music” stores the choice for the current browser tab session and attempts playback only after the tap. If playback fails, the visitor still enters and can use “Start birthday music.” “Enter without music” keeps the player silent until the visitor explicitly presses a music control.

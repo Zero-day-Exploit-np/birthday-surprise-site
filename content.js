@@ -8,8 +8,8 @@ window.BIRTHDAY_CONTENT = {
   letterText: `Today, I hope you feel even a little of the happiness you bring into my life.\n\nI hope this new year gives you a thousand reasons to smile, courage for the hard days, peace when you need it, and people who remind you how wonderful you are.\n\nThank you for being exactly who you are. You don't have to be perfect to be precious. You don't have to do anything extraordinary to deserve love. Just being you is already something beautiful.\n\nIf I could make one birthday wish for you, it would be this: may life be gentle with your heart, may your dreams find their way to you, and may you never forget how deeply you are appreciated.`,
   letterSign: "Always cheering for you, ♥",
   footerMessage: "In every version of the universe, I'd wish you happiness.",
-  /* Optional: put your song at assets/birthday-song.mp3. Autoplay may still need a tap. */
-  audioSrc: "HAPPY BIRTHDAY INSTRUMENTAL.mp3",
+  music: { src: "HAPPY BIRTHDAY INSTRUMENTAL.mp3", loop: true, enabledByDefault: false },
+  photos: [],
   memories: [
     { caption: "The moment I wish I could replay", image: "" },
     { caption: "A smile I never get tired of", image: "" },
