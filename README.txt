@@ -16,8 +16,8 @@ Option B: put images in assets/ and set each memories item image to a path such 
 ADD MUSIC
 Set audioSrc in content/birthday.json to the relative path of your audio file. The included configuration points to the provided "HAPPY BIRTHDAY INSTRUMENTAL.mp3" file. You can instead create an assets folder beside index.html and use a path such as "assets/our-song.mp3".
 
-AUTOPLAY NOTE
-The website attempts to play the configured song when the page loads. Chrome, Firefox, Safari and mobile browsers commonly block audible autoplay until the visitor interacts with the page. If blocked, she can tap “Start birthday music” or “Play our song.” This browser restriction cannot be reliably bypassed by website code.
+MUSIC CONSENT
+The opening screen is a custom audio-choice screen, not a browser permission request. No audio is attempted before a choice is made. “Enter with music” stores the choice for the current browser tab session and attempts playback only after the tap. If playback fails, the visitor still enters and can use “Start birthday music.” “Enter without music” keeps the player silent until the visitor explicitly presses a music control.
 
 CAKE CUTTING
 Tap “Cut the cake” to play the knife and slice animation. Tap “Reset cake” to replay it.
@@ -29,10 +29,10 @@ Then visit http://localhost:8000
 Serving the folder is required for content/birthday.json to load; opening index.html directly still uses the content.js fallback.
 
 OPENING EXPERIENCE
-The first screen is a skippable introduction. “Enter your surprise” dismisses it and retries music playback after a user gesture. “Skip intro” dismisses it without requiring the animation.
+The first screen asks whether the visitor wants music. Both choices always open the website, and the choice is stored only in sessionStorage for the current visit.
 
 PHOTO LIGHTBOX
-Click a loaded gallery photo to open the viewer. Use the previous/next buttons or the Left/Right arrow keys, and press Escape to close it.
+Click or focus a loaded gallery photo to open the viewer. Use the previous/next buttons, swipe left/right on touch devices, or the Left/Right arrow keys. Press Escape to close it.
 
 HOSTING
 Upload index.html, content.js, and the assets folder together to GitHub Pages or Netlify. Keep the same folder structure.

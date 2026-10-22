@@ -9,7 +9,7 @@ window.BIRTHDAY_CONTENT = {
   letterSign: "Always cheering for you, ♥",
   footerMessage: "In every version of the universe, I'd wish you happiness.",
   /* Optional: put your song at assets/birthday-song.mp3. Autoplay may still need a tap. */
-  audioSrc: "assets/birthday-song.mp3",
+  audioSrc: "HAPPY BIRTHDAY INSTRUMENTAL.mp3",
   memories: [
     { caption: "The moment I wish I could replay", image: "" },
     { caption: "A smile I never get tired of", image: "" },
