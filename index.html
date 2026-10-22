@@ -1603,7 +1603,7 @@
       <a href="#music"><span>♫</span> Music</a>
       <a href="#memories"><span>▧</span> Photos</a>
     </nav>
-    <button class="pill" id="personalizeBtn">Make it yours ✦</button>
+    <button class="pill" id="personalizeBtn">Personalize ✦</button>
   </header>
 
   <main>
@@ -1627,8 +1627,6 @@
           <img id="heroPhoto" alt="Your favorite photo together">
           <div class="photo-placeholder">
             <div class="big-heart">♡</div>
-            <p>Your favorite photo goes here</p><small>Tap “Make it yours” to add a photo<br>that means the world to
-              you.</small>
           </div>
         </div>
       </div>
@@ -1639,8 +1637,7 @@
       <div class="section-head">
         <div class="kicker">Little moments, forever</div>
         <h2>Our kind of <i>magic.</i></h2>
-        <p>Some memories are too special to stay inside a phone. Add your favorite photos and give each one a little
-          caption.</p>
+        <p>Some memories are too special to stay inside a phone. Every photo here is part of this little collection.</p>
       </div>
       <div class="gallery" id="gallery"></div>
       <div class="memory-hint">Photos are loaded from the root-level photo/ folder using content/birthday.json.</div>
@@ -1795,6 +1792,7 @@
   <script src="content.js"></script>
   <script>
     const $ = s => document.querySelector(s);
+    const assetUrl = value => new URL(value, document.baseURI).href;
     const toastEl = $('#toast'); let toastTimer;
     function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2800) }
     // Personalization asks for the recipient's name and optional first-screen message.
@@ -1854,12 +1852,11 @@
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
       const img = document.createElement('img');
-      img.loading = 'lazy';
+      img.loading = 'eager';
       img.alt = typeof photo.alt === 'string' && photo.alt ? photo.alt : 'Birthday memory';
-      img.src = typeof photo.url === 'string' ? photo.url : '';
       const placeholder = document.createElement('div');
       placeholder.className = 'memory-placeholder';
-      placeholder.innerHTML = '<b>♡</b><span>This memory is unavailable</span>';
+      placeholder.innerHTML = '<b>♡</b><span>Loading memory…</span>';
       const caption = document.createElement('div');
       caption.className = 'memory-caption';
       caption.textContent = typeof photo.caption === 'string' ? photo.caption : '';
@@ -1874,8 +1871,18 @@
       img.addEventListener('error', () => {
         card.classList.remove('has-photo');
         card.classList.add('is-unavailable');
-        img.removeAttribute('src');
+        console.error('Birthday memory failed to load:', img.currentSrc || img.src, {
+          configuredUrl: photo.url,
+          card
+        });
+        placeholder.querySelector('span').textContent = 'This memory could not be loaded.';
       });
+      if (typeof photo.url === 'string' && photo.url.trim()) {
+        img.src = assetUrl(photo.url.trim());
+      } else {
+        console.error('Birthday memory has no valid URL:', photo);
+        placeholder.querySelector('span').textContent = 'This memory has no image URL.';
+      }
       return card;
     }
     function renderPhotos(photos) {
@@ -1899,6 +1906,43 @@
         });
       });
     }
+    let heroLoadToken = 0;
+    function loadHeroPhoto(photos) {
+      const heroFrame = $('#heroFrame');
+      const heroPhoto = $('#heroPhoto');
+      const candidates = Array.isArray(photos)
+        ? photos.filter(photo => photo && typeof photo.url === 'string' && photo.url.trim())
+        : [];
+      const token = ++heroLoadToken;
+      heroFrame.classList.remove('has-photo');
+      heroPhoto.removeAttribute('src');
+      if (!candidates.length) {
+        console.error('Birthday content has no valid hero photo candidates.');
+        return;
+      }
+      let candidateIndex = 0;
+      const tryNextPhoto = () => {
+        if (token !== heroLoadToken || candidateIndex >= candidates.length) {
+          if (candidateIndex >= candidates.length) console.error('All configured hero photos failed to load.');
+          return;
+        }
+        const photo = candidates[candidateIndex++];
+        const url = assetUrl(photo.url.trim());
+        heroPhoto.onload = () => {
+          if (token !== heroLoadToken) return;
+          heroPhoto.alt = typeof photo.alt === 'string' && photo.alt ? photo.alt : 'Birthday memory';
+          heroFrame.classList.add('has-photo');
+        };
+        heroPhoto.onerror = () => {
+          console.error('Hero photo failed to load:', heroPhoto.currentSrc || heroPhoto.src, {
+            configuredUrl: photo.url
+          });
+          tryNextPhoto();
+        };
+        heroPhoto.src = url;
+      };
+      tryNextPhoto();
+    }
     // Text lives in content.js, so edit that file instead of this HTML.
     function applyBirthdayContent() {
       const c = window.BIRTHDAY_CONTENT; if (!c) return;
@@ -1911,7 +1955,10 @@
       if (c.letterSign) document.querySelector('.letter-sign').textContent = c.letterSign;
       if (c.footerMessage) document.querySelector('footer p').textContent = c.footerMessage;
       if (c.pageTitle) document.title = c.pageTitle;
-      if (Array.isArray(c.photos)) renderPhotos(c.photos);
+      if (Array.isArray(c.photos)) {
+        loadHeroPhoto(c.photos);
+        renderPhotos(c.photos);
+      }
       if (Array.isArray(c.chapters)) { document.querySelectorAll('.story-item').forEach((item, i) => { const d = c.chapters[i]; if (!d) return; item.querySelector('small').textContent = d.label || ''; item.querySelector('h3').textContent = d.title || ''; item.querySelector('p').textContent = d.text || ''; }) }
       if (c.music) {
         if (typeof c.music.loop === 'boolean') audio.loop = c.music.loop;
@@ -1919,7 +1966,16 @@
       }
     }
     applyBirthdayContent();
-    fetch('content/birthday.json').then(response => { if (!response.ok) throw new Error('Content file could not be loaded'); return response.json() }).then(content => { window.BIRTHDAY_CONTENT = content; applyBirthdayContent(); }).catch(() => { if (window.location.protocol !== 'file:') toast('Using the built-in birthday content because the editable content file could not be loaded.'); });
+    fetch(assetUrl('content/birthday.json')).then(response => {
+      if (!response.ok) throw new Error(`Content file could not be loaded (${response.status})`);
+      return response.json();
+    }).then(content => {
+      window.BIRTHDAY_CONTENT = content;
+      applyBirthdayContent();
+    }).catch(error => {
+      console.error('Birthday configuration failed to load:', error);
+      toast('Birthday configuration could not be loaded. Check the browser console.');
+    });
     setInterval(() => { if (document.visibilityState === 'visible' && Math.random() > .5) { const h = document.createElement('span'); h.className = 'heart-particle'; h.textContent = Math.random() > .5 ? '♡' : '♥'; h.style.left = Math.random() * 100 + 'vw'; h.style.fontSize = (12 + Math.random() * 10) + 'px'; h.style.animationDuration = (7 + Math.random() * 4) + 's'; h.style.opacity = '.35'; document.body.appendChild(h); setTimeout(() => h.remove(), 12000) } }, 1800);
   </script>
 </body>

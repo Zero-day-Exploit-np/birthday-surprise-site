@@ -41,7 +41,7 @@ For local photos, place each file in the root-level `photo/` directory and use a
 
 You can also use a direct, publicly reachable image URL: upload the image to an image host, object-storage bucket, CDN, or your own website, then copy the URL that points directly to the image file. Test it by opening the URL in a private browser window. The URL should return the image itself, not an HTML preview page, login page, or share page.
 
-Unavailable URLs are converted into a friendly placeholder. An empty `photos` array displays an empty-gallery message. Captions, dates, and alt text are inserted as text rather than HTML.
+Configured photos are loaded directly from their `url` values and failed requests are reported in the browser console. An empty `photos` array displays an empty-gallery message. Captions, dates, and alt text are inserted as text rather than HTML.
 
 ### Configure music
 
