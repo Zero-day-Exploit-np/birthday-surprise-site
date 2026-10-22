@@ -130,20 +130,16 @@ footer{text-align:center;padding:55px 20px 35px;border-top:1px solid #ffffff0d;b
     <div class="orbit"></div><span class="floating f1">♡</span><span class="floating f2">✦</span><span class="floating f3">♥</span>
     <div class="photo-frame" id="heroFrame">
       <img id="heroPhoto" alt="Your favorite photo together">
-      <div class="photo-placeholder"><div class="big-heart">♡</div><p>Your favorite photo goes here</p><small>Tap “Make it yours” to add a photo<br>that means the world to you.</small></div>
+      <div class="photo-placeholder"><div class="big-heart">♡</div><p>Your favorite photo goes here</p><small>Add a hero image path in the photo configuration<br>when you are ready.</small></div>
     </div>
   </div>
   <div class="scroll-note">↓ &nbsp; there's more to this little world &nbsp; ↓</div>
 </section>
 
 <section class="memory-section" id="memories">
-  <div class="section-head"><div class="kicker">Little moments, forever</div><h2>Our kind of <i>magic.</i></h2><p>Some memories are too special to stay inside a phone. Add your favorite photos and give each one a little caption.</p></div>
-  <div class="memory-tools">
-    <label class="pill upload-label">＋ Add our photos <input id="photoUpload" type="file" accept="image/*" multiple></label>
-    <button class="pill" id="captionHelp">How to personalize</button>
-  </div>
+  <div class="section-head"><div class="kicker">Little moments, forever</div><h2>Our kind of <i>magic.</i></h2><p>Some memories are too special to stay inside a phone. Add their relative paths in content/birthday.json.</p></div>
   <div class="gallery" id="gallery"></div>
-  <div class="memory-hint">Add photo URLs in content/birthday.json. Local uploads are temporary and stay in this browser session.</div>
+  <div class="memory-hint">Photos are loaded from the root-level photo/ folder using content/birthday.json.</div>
 </section>
 
 <section id="cake">
@@ -223,22 +219,11 @@ $('#personalizeBtn').addEventListener('click',()=>{
  const message=prompt('Add a short personal message for the first screen (Cancel to keep the current one).');
  if(message!==null&&message.trim())$('#heroMessage').textContent=message.trim();
 });
-$('#captionHelp').addEventListener('click',()=>toast('Add photos below, then tap any photo to view it. Edit the captions in the HTML for your own memories.'));
-const photoInput=$('#photoUpload');const heroInput=document.createElement('input');heroInput.type='file';heroInput.accept='image/*';heroInput.style.display='none';document.body.appendChild(heroInput);
-$('#heroFrame').addEventListener('click',()=>heroInput.click());
-heroInput.addEventListener('change',()=>{const f=heroInput.files[0];if(!f)return;const url=URL.createObjectURL(f);$('#heroPhoto').src=url;$('#heroFrame').classList.add('has-photo');toast('Your favorite photo is in place. ♥');});
-photoInput.addEventListener('change',()=>{
- const files=Array.from(photoInput.files||[]).filter(f=>f.type.startsWith('image/'));
- if(!files.length)return;
- const gallery=$('#gallery');gallery.querySelector('.gallery-empty')?.remove();
- files.forEach(file=>gallery.appendChild(createMemoryCard({url:URL.createObjectURL(file),caption:file.name.replace(/\.[^.]+$/,''),alt:file.name})));
- toast('Your memories are in the gallery. Tap a photo to see it bigger. ♥');
-});
 let currentPhotoIndex=0;
 const photoCards=()=>Array.from(document.querySelectorAll('.memory.has-photo'));
 function showPhoto(index){const cards=photoCards();if(!cards.length)return;currentPhotoIndex=(index+cards.length)%cards.length;const img=cards[currentPhotoIndex].querySelector('img');$('#lightboxImg').src=img.src;$('#lightboxImg').alt=img.alt||'Expanded memory';$('#lightbox').classList.add('open');$('#closeLightbox').focus();}
 function openMemory(card){
- const img=card.querySelector('img');if(card.classList.contains('is-unavailable'))return;if(!card.classList.contains('has-photo')){photoInput.click();return;}
+ const img=card.querySelector('img');if(card.classList.contains('is-unavailable')||!card.classList.contains('has-photo'))return;
  showPhoto(photoCards().indexOf(card));
 }
 function bindMemoryCards(){document.querySelectorAll('.memory').forEach(card=>{card.addEventListener('click',()=>openMemory(card));card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openMemory(card)}})});}
@@ -308,7 +293,6 @@ function applyBirthdayContent(){const c=window.BIRTHDAY_CONTENT;if(!c)return;
  if(c.letterSign)document.querySelector('.letter-sign').textContent=c.letterSign;
  if(c.footerMessage)document.querySelector('footer p').textContent=c.footerMessage;
  if(c.pageTitle)document.title=c.pageTitle;
- if(Array.isArray(c.memories)){document.querySelectorAll('.memory').forEach((card,i)=>{const m=c.memories[i];if(!m)return;if(m.caption){card.dataset.caption=m.caption;card.querySelector('.memory-caption').textContent=m.caption;card.querySelector('.memory-placeholder span').textContent=m.caption;}if(m.image){const img=card.querySelector('img');img.src=m.image;card.classList.add('has-photo');}})}
  if(Array.isArray(c.chapters)){document.querySelectorAll('.story-item').forEach((item,i)=>{const d=c.chapters[i];if(!d)return;item.querySelector('small').textContent=d.label||'';item.querySelector('h3').textContent=d.title||'';item.querySelector('p').textContent=d.text||'';})}
  if(Array.isArray(c.photos))renderConfiguredPhotos(c.photos);
  if(c.music){if(typeof c.music.loop==='boolean')audio.loop=c.music.loop;if(typeof c.music.src==='string'&&c.music.src.trim()&&audio.getAttribute('src')!==c.music.src){audio.src=c.music.src;audio.load();}}

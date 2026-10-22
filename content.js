@@ -9,13 +9,15 @@ window.BIRTHDAY_CONTENT = {
   letterSign: "Always cheering for you, ♥",
   footerMessage: "In every version of the universe, I'd wish you happiness.",
   music: { src: "HAPPY BIRTHDAY INSTRUMENTAL.mp3", loop: true, enabledByDefault: false },
-  photos: [],
-  memories: [
-    { caption: "The moment I wish I could replay", image: "" },
-    { caption: "A smile I never get tired of", image: "" },
-    { caption: "Anywhere is lovely with you", image: "" },
-    { caption: "The little things are the big things", image: "" },
-    { caption: "One of a million reasons I love you", image: "" }
+  photos: [
+    { url: "photo/IMG-20250424-WA0014.jpg", caption: "", date: "", alt: "Birthday memory" },
+    { url: "photo/IMG-20260223-WA0070.jpg", caption: "", date: "", alt: "Special memory" },
+    { url: "photo/IMG-20260302-WA0478.jpg", caption: "", date: "", alt: "Special memory" },
+    { url: "photo/Snapchat-1233050219.jpg", caption: "", date: "", alt: "Special memory" },
+    { url: "photo/godawari.jpg", caption: "", date: "", alt: "Godawari memory" },
+    { url: "photo/holi%20uss.jpg", caption: "", date: "", alt: "Holi memory" },
+    { url: "photo/she.jpeg", caption: "", date: "", alt: "Special memory" },
+    { url: "photo/sheee.jpg", caption: "", date: "", alt: "Special memory" }
   ],
   chapters: [
     { label: "Chapter 01 · The beginning", title: "The day my world got brighter", text: "The first hello, the first conversation, or the first time you made me smile without even trying. This is where our little story begins." },

@@ -37,7 +37,9 @@ Add photo entries to the `photos` array. New entries are rendered automatically;
 ]
 ```
 
-Use a direct, publicly reachable image URL: upload the image to an image host, object-storage bucket, CDN, or your own website, then copy the URL that points directly to the image file. Test it by opening the URL in a private browser window. The URL should return the image itself, not an HTML preview page, login page, or share page. JPG, JPEG, PNG, WebP, GIF, and other browser-supported formats are accepted. Keep `date` empty when no date label should be shown. Use `alt` to describe the image for visitors using assistive technology.
+For local photos, place each file in the root-level `photo/` directory and use a relative URL such as `"photo/she.jpeg"`. Encode spaces in filenames as `%20`, for example `"photo/holi%20uss.jpg"`. JPG, JPEG, PNG, WebP, GIF, and other browser-supported formats are accepted. Keep `date` empty when no date label should be shown. Use `alt` to describe the image for visitors using assistive technology. The website does not include a photo upload or management interface.
+
+You can also use a direct, publicly reachable image URL: upload the image to an image host, object-storage bucket, CDN, or your own website, then copy the URL that points directly to the image file. Test it by opening the URL in a private browser window. The URL should return the image itself, not an HTML preview page, login page, or share page.
 
 Unavailable URLs are converted into a friendly placeholder. An empty `photos` array displays an empty-gallery message. Captions, dates, and alt text are inserted as text rather than HTML.
 

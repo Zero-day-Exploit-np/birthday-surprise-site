@@ -4,7 +4,7 @@ FILES
 - index.html: website layout, styles, animations and behavior.
 - content.js: edit this file to change the wording, letter, photo captions, timeline text and optional song path.
 - content/birthday.json: central editable content loaded when the site is served over HTTP. content.js remains as an inline fallback for file:// previews.
-- assets/: place your music and image files here (create this folder).
+- photo/: place the eight local gallery images here, or add more files and JSON entries.
 
 EDIT TEXT
 Open content.js in a text editor and change the text between quotes/backticks. Keep commas between fields. For a quote inside a quoted string, use \". The letterText uses backticks and can contain apostrophes and new lines.
@@ -12,7 +12,7 @@ Open content.js in a text editor and change the text between quotes/backticks. K
 ADD PHOTOS
 Edit the photos array in content/birthday.json. Each entry uses:
   {"url":"https://your-host.example/photos/photo1.jpg","caption":"My favorite memory","date":"","alt":"A special memory together"}
-Upload the image to an image host, storage bucket, CDN, or your own website and paste the direct public URL that returns the image file itself. Do not use a share-page URL that returns HTML or requires login. Add another JSON object for each new photo. JPG, JPEG, PNG, WebP, GIF, and other browser-supported formats work. Empty dates are not displayed. Invalid URLs become friendly placeholders and an empty array shows an empty-gallery message. The temporary “Add our photos” control is also retained for local previews.
+For local files use paths such as "photo/she.jpeg"; encode spaces as "%20", such as "photo/holi%20uss.jpg". You can also upload the image to an image host, storage bucket, CDN, or your own website and paste the direct public URL that returns the image file itself. Do not use a share-page URL that returns HTML or requires login. Add another JSON object for each new photo. JPG, JPEG, PNG, WebP, GIF, and other browser-supported formats work. Empty dates are not displayed. Invalid URLs become friendly placeholders and an empty array shows an empty-gallery message. The website does not include a photo upload or management interface.
 
 ADD MUSIC
 Set music.src in content/birthday.json to the relative path or direct URL of your audio file. Set music.loop to true for continuous looping. The included configuration points to the provided "HAPPY BIRTHDAY INSTRUMENTAL.mp3" file.
